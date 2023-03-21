@@ -11,7 +11,7 @@
 <body>
 
 
-    <audio src="assets/audios/crowd.mp3" autoplay loop></audio>
+    <!-- <audio src="assets/audios/crowd.mp3" autoplay loop></audio> -->
 
     <!-- Scoreboard with country code and score -->
     <div id="scoreboard">
@@ -93,6 +93,10 @@
     }
 </script>
 <script type="module">
+
+    var crowd = new Audio('assets/audios/crowd.mp3');
+    crowd.play();
+
     import * as THREE from 'three'
     import { Line2 } from 'three/addons/lines/Line2.js';
     import { LineMaterial } from 'three/addons/lines/LineMaterial.js';
@@ -715,6 +719,10 @@
             .easing(TWEEN.Easing.Exponential.Out)
             .start();
 
+        // play kick.mp3 sound
+        var audio = new Audio('assets/audios/kick.mp3');
+        audio.play();
+
         // Check if it was a goal or miss
         setTimeout(() => {
             if (Math.abs(goalkeeper.position.x - target.position.x) < 0.5 || Math.abs(target.position.x) >= 2.8 || Math.abs(target.position.y) >= 2.2) {
@@ -727,6 +735,7 @@
                 console.log(Math.abs(goalkeeper.position.x - target.position.x))
                 shoot_result.style.opacity = 1;
                 shoot_result.getElementsByTagName("h1")[0].innerText = "GOAL!!!";
+                crowd.currentTime = 4;
                 player_score_text.innerText = ++player_score;
                 console.log("GOAL")
                 setTimeout(opponent_action, 3000);
