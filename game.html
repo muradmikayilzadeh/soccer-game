@@ -531,7 +531,6 @@
         var sorted_players_group = Object.keys(players_group).sort(function (a, b) { return players_group[b].points - players_group[a].points });
         // if picked team is in the top 1, then console.log team name
         if (sorted_players_group.indexOf(picked_team) < 1) {
-            // console.log("You are in the next stage");
             document.querySelector("#next-stage h1").innerHTML = "WINNER!";
             document.querySelector("#next-stage").style.display = "block";
         } else {
