@@ -1,0 +1,838 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>Soccer Game Menu</title>
+
+    <link rel="stylesheet" href="assets/style/style.css">
+</head>
+
+<body>
+
+
+    <audio src="assets/audios/crowd.mp3" autoplay loop></audio>
+
+    <!-- Scoreboard with country code and score -->
+    <div id="scoreboard">
+        <div id="scoreboard-left-country">
+            <b>SA</b>
+        </div>
+        <div id="score">
+            <b id="left-score">0</b>
+            -
+            <b id="right-score">0</b>
+        </div>
+        <div id="scoreboard-right-country">
+            <b>CM</b>
+        </div>
+    </div>
+
+    <div id="goal-or-miss">
+        <h1>GOAL!!!</h1>
+    </div>
+
+    <div id="opponent">
+        <h1>Opponent's Turn...</h1>
+        <p>Opponent Scores!</p>
+    </div>
+
+
+</body>
+
+<div id="game-result">
+    <h1>YOU WON!</h1>
+    <div id="scoreboard-left-country" class="game_result_left" style="float:none">
+        <b>SA</b>
+    </div>
+    <div id="score" style="float:none">
+        <b id="left-score">0</b>
+        -
+        <b id="right-score">0</b>
+    </div>
+    <div id="scoreboard-right-country" class="game_result_right" style="background-color:#1077C3; float:none">
+        <b>CM</b>
+    </div>
+
+    <!-- group standing with only points -->
+    <h5>Group Standing</h5>
+    <table id="group_standing">
+
+        <tr>
+            <td>AU</td>
+            <td>0</td>
+        </tr>
+        <tr>
+            <td>AU</td>
+            <td>0</td>
+        </tr>
+        <tr>
+            <td>AU</td>
+            <td>0</td>
+        </tr>
+        <tr>
+            <td>AU</td>
+            <td>0</td>
+        </tr>
+    </table>
+</div>
+
+<div id="next-stage">
+    <h1>YOU ARE IN THE NEXT STAGE</h1>
+    <h1><a href="index.html">PLAY</a></h1>
+</div>
+
+<script async src="https://unpkg.com/es-module-shims@1.3.6/dist/es-module-shims.js"></script>
+<script></script>
+<script type="importmap">
+    {
+        "imports": {
+        "three": "https://unpkg.com/three@0.121.1/build/three.module.js",
+        "three/addons/": "https://unpkg.com/three@0.121.1/examples/jsm/"
+        }
+    }
+</script>
+<script type="module">
+    import * as THREE from 'three'
+    import { Line2 } from 'three/addons/lines/Line2.js';
+    import { LineMaterial } from 'three/addons/lines/LineMaterial.js';
+    import { LineGeometry } from 'three/addons/lines/LineGeometry.js';
+    import { LineSegmentsGeometry } from 'three/addons/lines/LineSegmentsGeometry.js';
+    import { TWEEN } from 'three/addons/libs/tween.module.min'
+
+    var game_count = 0;
+
+    var players_group = JSON.parse(localStorage.getItem("players_group"));
+    var players_fixtures = JSON.parse(localStorage.getItem("players_fixtures"));
+
+    var picked_team = JSON.parse(localStorage.getItem("picked_team"));
+    var opponent_team = players_fixtures[game_count][1][0];
+
+    // Update scoreboard details
+    document.querySelector("#scoreboard-right-country b").innerHTML = players_fixtures[game_count][0][1];
+    document.querySelector("#scoreboard-left-country b").innerHTML = players_fixtures[game_count][1][1];
+
+    document.querySelector(".game_result_right b").innerHTML = players_fixtures[game_count][0][1];
+    document.querySelector(".game_result_left b").innerHTML = players_fixtures[game_count][1][1];
+
+    // Create scene, camera, and canvas
+    var scene = new THREE.Scene();
+    var camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.1, 0);
+    var shoot_result = document.getElementById("goal-or-miss");
+    var opponent = document.getElementById("opponent");
+    var game_result = document.getElementById("game-result");
+    var num_shoots_left = 5;
+    var player_score_text = document.getElementById("left-score");
+    var opponent_score_text = document.getElementById("right-score");
+
+    var player_score = 0;
+    var opponent_score = 0;
+
+    var renderer = new THREE.WebGLRenderer({ alpha: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setClearColor(0x000000, 0);
+    document.body.appendChild(renderer.domElement);
+
+    // add light to the scene
+
+    // Create elements object
+    var elements = {
+        "spectators": {
+            "type": "plane",
+            "side": THREE.FrontSide,
+            "position": {
+                "x": 0,
+                "y": 3,
+                "z": 0
+            },
+            "scale": {
+                "x": window.innerWidth,
+                "y": 1.8,
+                "z": 1
+            },
+            "texture": {
+                "type": "image",
+                "path": "assets/imgs/spectators.jpg",
+                "repeat": {
+                    "x": 300,
+                    "y": 1
+                }
+            }
+        },
+        "stadium_fence": {
+            "type": "plane",
+            "side": THREE.FrontSide,
+            "position": {
+                "x": 0,
+                "y": 2,
+                "z": 0
+            },
+            "scale": {
+                "x": window.innerWidth,
+                "y": 0.8,
+                "z": 1
+            },
+            "texture": {
+                "type": "image",
+                "path": "assets/imgs/stadium_fence.png",
+                "repeat": {
+                    "x": 100,
+                    "y": 1
+                }
+            }
+        },
+        "goal":
+        {
+            "type": "plane",
+            "side": THREE.DoubleSide,
+            "transparent": true,
+            "position": {
+                "x": 0,
+                "y": 1.7,
+                "z": 0
+            },
+            "scale": {
+                "x": 5.5,
+                "y": 3,
+                "z": 1
+            },
+            "rotate": {
+                "x": (Math.PI / 180) * 50,
+                "y": 0,
+                "z": 0
+            },
+            "texture": {
+                "type": "image",
+                "path": "assets/imgs/goal.png",
+                "repeat": {
+                    "x": 1,
+                    "y": 1
+                }
+            }
+        },
+        "field": {
+            "type": "plane",
+            "side": THREE.FrontSide,
+            "position": {
+                "x": 0,
+                "y": -1.6,
+                "z": 0
+            },
+            "scale": {
+                "x": window.innerWidth,
+                "y": 6.4,
+                "z": 1
+            },
+            "texture": {
+                "type": "image",
+                "path": "assets/imgs/soccer_field_texture.jpg",
+                "repeat": {
+                    "x": 1000,
+                    "y": 1
+                }
+            }
+        },
+        "field_line": {
+            "type": "line",
+            "color": 0xffffff,
+            "linewidth": 0.008,
+            "vertices": new Float32Array([
+                -50, 0.7, 0,
+                50, 0.7, 0
+            ])
+        },
+        "goal_area_line": {
+            "type": "line",
+            "color": 0xffffff,
+            "linewidth": 0.008,
+            "vertices": new Float32Array([
+                -3.8, 0.7, 0,
+                -3.8, -1, 0,
+                3.8, -1, 0,
+                3.8, 0.7, 0,
+            ])
+        },
+
+        "penalty_area_line": {
+            "type": "line",
+            "color": 0xffffff,
+            "linewidth": 0.008,
+            "vertices": new Float32Array([
+                -50, -2.7, 0,
+                50, -2.7, 0
+            ])
+        },
+        "target":
+        {
+            "type": "circle",
+            "transparent": true,
+            "scale": 0.2,
+            "segments": 32,
+            "texture": {
+                "type": "image",
+                "path": "assets/imgs/target.png",
+                "repeat": {
+                    "x": 1,
+                    "y": 1
+                }
+            }
+        },
+        "goalkeeper": {
+            "type": "plane",
+            "side": THREE.DoubleSide,
+            "transparent": true,
+            "position": {
+                "x": 0,
+                "y": 1.2,
+                "z": 0
+            },
+            "scale": {
+                "x": 1,
+                "y": 1.5,
+                "z": 1
+            },
+            "rotate": {
+                "x": (Math.PI / 180) * 20,
+                "y": 0,
+                "z": 0
+            },
+            "texture": {
+                "type": "image",
+                "path": "assets/imgs/goalkeepers/goalkeeper_still.png",
+                "repeat": {
+                    "x": 1,
+                    "y": 1
+                }
+            }
+        }
+    };
+
+    // Add ball
+    // create a sphere geometry with a radius of 1 and 32 segments
+    var geometry = new THREE.SphereGeometry(0.2, 32, 32);
+
+    // create a material with standard shading and a red color
+    var material = new THREE.MeshBasicMaterial({ color: 0xffffff, map: new THREE.TextureLoader().load('assets/imgs/ball_sphere.jpg'), transparent: true, wrapS: THREE.RepeatWrapping, wrapT: THREE.RepeatWrapping, depthTest: true });
+
+    // create a mesh with the geometry and material
+    var ball = new THREE.Mesh(geometry, material);
+
+    // add the mesh to the scene
+    scene.add(ball);
+    // ball.rotation.x = (Math.PI / 180) * 50;
+    ball.position.set(0, -2, 0)
+
+    //Render loop to render elements in elements object
+    for (var element in elements) {
+
+        if (elements[element].type == "plane") {
+            var planeGeo = new THREE.PlaneGeometry(1, 1, 1);
+            var material = new THREE.MeshBasicMaterial({
+                color: elements[element].color,
+                side: elements[element].side,
+                depthTest: true,
+            });
+            // add texture
+            if (elements[element].texture) {
+                var texture = new THREE.TextureLoader().load(elements[element].texture.path);
+                texture.anisotropy = renderer.capabilities.getMaxAnisotropy();
+                material.map = texture;
+                // repeat texture if needed
+                if (elements[element].texture.repeat) {
+                    material.map.wrapS = THREE.RepeatWrapping;
+                    material.map.wrapT = THREE.RepeatWrapping;
+                    material.map.repeat.set(elements[element].texture.repeat.x, elements[element].texture.repeat.y);
+                }
+            }
+
+            // if transparent
+            if (elements[element].transparent) {
+                material.transparent = true;
+            }
+
+            // rotate element if defined
+            if (elements[element].rotate) {
+                planeGeo.rotateX(elements[element].rotate.x);
+                planeGeo.rotateY(elements[element].rotate.y);
+                planeGeo.rotateZ(elements[element].rotate.z);
+            }
+
+            var plane = new THREE.Mesh(planeGeo, material);
+            plane.position.set(elements[element].position.x, elements[element].position.y, elements[element].position.z);
+            plane.scale.x = elements[element].scale.x;
+            plane.scale.y = elements[element].scale.y;
+            plane.scale.z = elements[element].scale.z;
+
+            // Identify the element
+            plane.name = element;
+
+            scene.add(plane);
+        }
+
+
+        // render line
+        if (elements[element].type == "line") {
+
+            var lineGeo = new LineGeometry();
+            lineGeo.setPositions(elements[element].vertices);
+            var lineMat = new LineMaterial({ color: elements[element].color, depthTest: false, linewidth: elements[element].linewidth });
+            var line = new Line2(lineGeo, lineMat);
+            scene.add(line);
+
+        }
+
+        // render circle
+        if (elements[element].type == "circle") {
+            var circleGeo = new THREE.CircleGeometry(elements[element].scale, elements[element].segments);
+            var material = new THREE.MeshBasicMaterial({
+                depthTest: true,
+                map: new THREE.TextureLoader().load(elements[element].texture.path)
+            });
+            var circle = new THREE.Mesh(circleGeo, material);
+            circle.name = element;
+            scene.add(circle);
+
+        }
+    }
+
+
+
+
+    // Drawing the hemicircle
+    // Set the radius and number of segments for the hemicircle
+    var radiusX = -3.5;
+    var radiusY = -1;
+    var segments = 500;
+    // Create an empty array to hold the points
+    var points = [0, 0, 0];
+    // Add the points around the circumference of the hemicircle
+    for (var i = 0; i <= segments; i++) {
+        var theta = (i / segments) * Math.PI;
+        var x = radiusX * Math.cos(theta);
+        var y = radiusY * Math.sin(theta);
+        points.push(x);
+        points.push(y);
+        points.push(0);
+    }
+
+    // Create a LineMaterial for the hemicircle's outline
+    var material = new LineMaterial({ color: 0xffffff, linewidth: 0.008, dashed: false });
+    // Create a LineSegmentsGeometry using the points
+    var geometry = new LineSegmentsGeometry().setPositions(new Float32Array(points));
+    var hemicircle = new Line2(geometry, material);
+    scene.add(hemicircle);
+    hemicircle.position.y = -2.7;
+
+
+
+
+
+
+
+
+    // Creating strike power controls
+    var controller_geo = new THREE.PlaneGeometry(1.5, 0.75);
+    var controller_material = new THREE.MeshBasicMaterial({ color: 0xffffff, map: new THREE.TextureLoader().load('assets/imgs/goal.png'), transparent: true });
+    var barMat = new LineMaterial({ color: "navy", depthTest: false, linewidth: 0.01 });
+    var ball_geo = new THREE.CircleGeometry(0.15, 100, 100);
+    var ball_material = new THREE.MeshBasicMaterial({ color: 0xffffff, map: new THREE.TextureLoader().load('assets/imgs/ball.png'), transparent: true, wrapS: THREE.RepeatWrapping, wrapT: THREE.RepeatWrapping, repeat: new THREE.Vector2(1, 1), depthTest: false });
+
+    // Left-right direction controller
+    var left_right_controller = new THREE.Mesh(controller_geo, controller_material);
+    scene.add(left_right_controller);
+    left_right_controller.rotation.x = (Math.PI / 180) * 20;
+    left_right_controller.position.set(-4, -3.3, 0);
+
+    var left_right_barGeo = new LineGeometry();
+    left_right_barGeo.setPositions([-4.7, -3.6, 0, -3.1, -3.6, 0]);
+
+    var left_right_bar = new Line2(left_right_barGeo, barMat);
+    scene.add(left_right_bar);
+
+    // Add scrolling ball to the controller
+    var left_right_ball = new THREE.Mesh(ball_geo, ball_material);
+    scene.add(left_right_ball);
+    left_right_ball.rotation.x = (Math.PI / 180) * 20;
+    left_right_ball.position.set(-4.7, -3.6, 0);
+
+    // Up-down direction controller
+    var up_down_controller = new THREE.Mesh(controller_geo, controller_material);
+    scene.add(up_down_controller);
+    up_down_controller.rotation.x = (Math.PI / 180) * 20;
+    up_down_controller.position.set(-2, -3.3, 0);
+
+    var up_down_barGeo = new LineGeometry();
+    up_down_barGeo.setPositions([-1.95, -3.7, 0, -2.1, -2.9, 0]);
+
+    var up_down_bar = new Line2(up_down_barGeo, barMat);
+    scene.add(up_down_bar);
+
+    // Add scrolling ball to the controller
+    var up_down_ball = new THREE.Mesh(ball_geo, ball_material);
+    scene.add(up_down_ball);
+    up_down_ball.rotation.x = (Math.PI / 180) * 20;
+    up_down_ball.position.set(-1.95, -3.6, 0);
+
+
+
+
+
+
+
+
+    //rendering options, camera and scene settings
+    scene.rotation.x = (Math.PI / 180) * -20;
+    camera.position.z = 5;
+    camera.position.y = -1.2;
+    renderer.render(scene, camera);
+
+
+    var goalkeeper = scene.getObjectByName("goalkeeper");
+    var target = scene.getObjectByName("target");
+    target.position.x = 100;
+    target.position.y = 100;
+
+    // Flags for the gameplay
+    var leftMost = true;
+    var rightMost = false;
+    var upMost = false;
+    var downMost = true;
+
+    function new_game() {
+        game_count++;
+
+        if (game_count < 3) {
+            opponent_team = players_fixtures[game_count][1][0];
+            num_shoots_left = 1;
+            player_score = 0;
+            opponent_score = 0;
+            player_score_text.innerHTML = player_score;
+            opponent_score_text.innerHTML = opponent_score;
+            ball.position.set(0, -2, 0);
+
+            // Update scoreboard details
+            document.querySelector("#scoreboard-right-country b").innerHTML = players_fixtures[game_count][0][1];
+            document.querySelector("#scoreboard-left-country b").innerHTML = players_fixtures[game_count][1][1];
+            game_result.style.opacity = 0;
+            document.querySelector(".game_result_right b").innerHTML = players_fixtures[game_count][0][1];
+            document.querySelector(".game_result_left b").innerHTML = players_fixtures[game_count][1][1];
+            reset_gameplay();
+        } else {
+            setTimeout(next_stage, 1000);
+        }
+    }
+
+    function next_stage() {
+        // Sort the players_group object by points
+        var sorted_players_group = Object.keys(players_group).sort(function (a, b) { return players_group[b].points - players_group[a].points });
+        // if picked team is in the top 1, then console.log team name
+        if (sorted_players_group.indexOf(picked_team) < 1) {
+            // console.log("You are in the next stage");
+            document.querySelector("#next-stage h1").innerHTML = "WINNER!";
+            document.querySelector("#next-stage").style.display = "block";
+        } else {
+            document.querySelector("#next-stage h1").innerHTML = "You are out of the competition!";
+            document.querySelector("#next-stage").style.display = "block";
+        }
+    }
+
+    function update_group_points(player_won) {
+        if (player_won) {
+            players_group[picked_team].points += 3;
+        }
+        else {
+            players_group[opponent_team].points += 3;
+        }
+
+        // go over elements of players_group object and update the point of one team randomly except the picked_team and the opponent_team
+        for (var key in players_group) {
+            if (key != picked_team && key != opponent_team) {
+                // add only either 1 or 3 points to the team
+                Math.random() > 0.5 ? players_group[key].points += 1 : players_group[key].points += 3;
+
+                // players_group[key].points += Math.floor(Math.random() * 3) + 1;
+
+                console.log(players_group[key])
+                break;
+            }
+        }
+
+        // Print the points to group standing
+
+        // sort the players_group object by points
+        var group_standings = document.getElementById("group_standing");
+        group_standings.innerHTML = "";
+        for (var key in players_group) {
+            group_standings.innerHTML += "<tr><td>" + players_group[key].country_name + "</td><td>" + players_group[key].points + "</td></tr>";
+        }
+
+        setTimeout(new_game, 5000);
+
+
+        console.log(players_group);
+    }
+
+    function reset_gameplay() {
+        num_shoots_left--;
+        console.log(num_shoots_left)
+
+        leftMost = true;
+        rightMost = false;
+        upMost = false;
+        downMost = true;
+
+        left_rightClick = false;
+        up_downClick = false;
+
+        ball.position.set(0, -2, 0)
+
+
+        shoot_result.style.opacity = 0;
+        opponent.style.opacity = 0;
+        opponent.getElementsByTagName("p")[0].style.opacity = 0;
+
+        left_right_ball.position.set(-4.7, -3.6, 0);
+        up_down_ball.position.set(-1.95, -3.6, 0);
+        goalkeeper.position.set(0, 1.2, 0);
+        goalkeeper.material.map = new THREE.TextureLoader().load("assets/imgs/goalkeepers/goalkeeper_still.png");
+
+        target.position.x = 100;
+        target.position.y = 100;
+        if (num_shoots_left > 0) {
+            // do nothing;
+        } else if (player_score == opponent_score) {
+            num_shoots_left = 1;
+        } else if (player_score > opponent_score) {
+
+            game_result.getElementsByTagName("h1")[0].innerHTML = "YOU WIN!";
+            game_result.getElementsByTagName("b")[2].innerText = player_score;
+            game_result.getElementsByTagName("b")[1].innerText = opponent_score;
+            update_group_points(true);
+            game_result.style.opacity = 1;
+
+        } else if (player_score < opponent_score) {
+
+            game_result.getElementsByTagName("h1")[0].innerHTML = "YOU LOSE!";
+            game_result.getElementsByTagName("b")[2].innerText = player_score;
+            game_result.getElementsByTagName("b")[1].innerText = opponent_score;
+            update_group_points(false);
+            game_result.style.opacity = 1;
+
+        }
+
+
+
+        console.log(game_result.getElementsByTagName("b")[1])
+    }
+
+    function left_right_ball_animation() {
+
+        left_right_ball.rotation.z += 0.01;
+        if (leftMost == true) {
+            if (left_right_ball.position.x <= -3.1) {
+                left_right_ball.position.x = left_right_ball.position.x + 0.04;
+            } else {
+                leftMost = false;
+                rightMost = true;
+            }
+        }
+        if (rightMost) {
+            if (left_right_ball.position.x >= -4.7) {
+                left_right_ball.position.x = left_right_ball.position.x - 0.04;
+            } else {
+                leftMost = true;
+                rightMost = false;
+            }
+        }
+    }
+
+    function up_down_ball_animation() {
+
+        up_down_ball.rotation.z += 0.01;
+        if (upMost == true) {
+            if (up_down_ball.position.y <= -2.9) {
+                up_down_ball.position.y = up_down_ball.position.y + 0.02;
+                up_down_ball.position.x = up_down_ball.position.x - 0.004;
+            } else {
+                upMost = false;
+                downMost = true;
+            }
+        }
+        if (downMost) {
+            if (up_down_ball.position.y >= -3.7) {
+                up_down_ball.position.y = up_down_ball.position.y - 0.02;
+                up_down_ball.position.x = up_down_ball.position.x + 0.004;
+
+            } else {
+                upMost = true;
+                downMost = false;
+            }
+        }
+    }
+
+    function opponent_action() {
+        // Randomly peek either 0 or 1
+        var random = Math.random();
+        if (random < 0.5) {
+            random = 0;
+        } else {
+            random = 1;
+        }
+        opponent.style.opacity = 1;
+        console.log(random)
+        setTimeout(() => {
+            if (random == 1) {
+                opponent.getElementsByTagName("p")[0].innerHTML = "Opponent scores!";
+                opponent_score_text.innerText = ++opponent_score;
+            } else {
+                opponent.getElementsByTagName("p")[0].innerHTML = "Opponent misses!";
+            }
+            opponent.getElementsByTagName("p")[0].style.opacity = 1;
+
+        }, 1500);
+    }
+
+    function goalkeeper_action(goal_left_right_target, goal_up_down_target) {
+        // Peek a random number betweeen 0 and 1
+        var random = Math.random();
+
+        // Set goalkeeper position
+        goalkeeper.rotation.x = (Math.PI / 180) * 20;
+        // goal_left_right_target *= random;
+        if (goalkeeper.position.x < goal_left_right_target) {
+            goalkeeper.material.map = new THREE.TextureLoader().load("assets/imgs/goalkeepers/goalkeeper_right_jump.png");
+        } else if (goalkeeper.position.x > goal_left_right_target) {
+            goalkeeper.material.map = new THREE.TextureLoader().load("assets/imgs/goalkeepers/goalkeeper_left_jump.png");
+        }
+
+
+        var goalkeeper_to_target = new TWEEN.Tween(goalkeeper.position)
+            .to({
+                x: goal_left_right_target * random,
+                y: goal_up_down_target - 0.5
+            },
+                1000)
+            .easing(TWEEN.Easing.Exponential.Out)
+            .start();
+
+        // Check if it was a goal or miss
+        setTimeout(() => {
+            if (Math.abs(goalkeeper.position.x - target.position.x) < 0.5 || Math.abs(target.position.x) >= 2.8 || Math.abs(target.position.y) >= 2.2) {
+                console.log(Math.abs(goalkeeper.position.x - target.position.x))
+                shoot_result.style.opacity = 1;
+                shoot_result.getElementsByTagName("h1")[0].innerText = "MISS!!!";
+                console.log("MISS")
+                setTimeout(opponent_action, 3000);
+            } else {
+                console.log(Math.abs(goalkeeper.position.x - target.position.x))
+                shoot_result.style.opacity = 1;
+                shoot_result.getElementsByTagName("h1")[0].innerText = "GOAL!!!";
+                player_score_text.innerText = ++player_score;
+                console.log("GOAL")
+                setTimeout(opponent_action, 3000);
+            }
+        }, 1500);
+
+    }
+
+    function set_shoot_target() {
+        var left_right_strike_target = ((left_right_ball.position.x - -4.7) / 1.6);
+        var up_down_strike_target = ((up_down_ball.position.y - -3.7) / 1.8);
+
+        var goal_vertical_distance = 5;
+
+        var goal_left_right_target = -3 + (left_right_strike_target * 6);
+        var goal_up_down_target = 1 + (up_down_strike_target * 3);
+
+        // Set target position
+        target.rotation.x = (Math.PI / 180) * 20;
+        target.position.x = goal_left_right_target;
+        target.position.y = goal_up_down_target;
+
+        console.log("Target Locations: " + target.position.x + " " + target.position.y)
+
+        // Animate ball moving to the target
+        var ball_to_target = new TWEEN.Tween(ball.position)
+            .to({
+                x: target.position.x,
+                y: target.position.y
+            },
+                900)
+            .easing(TWEEN.Easing.Quintic.Out)
+            .onUpdate(function () {
+                // Compute the direction from the ball to the target
+                var direction = new THREE.Vector2(
+                    target.position.x - ball.position.x,
+                    target.position.y - ball.position.y
+                ).normalize();
+
+                // Compute the angle of the direction vector
+                var angle = Math.atan2(direction.y, direction.x);
+
+                // Set the rotation of the ball to face the target
+                ball.rotation.y = ball.rotation.y + 0.05;
+                ball.rotation.z = ball.rotation.z + 0.05;
+            })
+            .start();
+
+        setTimeout(goalkeeper_action(goal_left_right_target, goal_up_down_target), 400);
+
+    }
+
+
+
+    var left_rightClick = false;
+    var up_downClick = false;
+
+    var render = function () {
+        if (!left_rightClick && !up_downClick) {
+            left_right_ball_animation()
+        } else if (left_rightClick && !up_downClick) {
+            up_down_ball_animation()
+        }
+
+
+        TWEEN.update();
+
+        // check for ball and goalkeeper collision, if collision detected, bounce the ball back
+        if (ball.position.x >= goalkeeper.position.x - 0.5 && ball.position.x <= goalkeeper.position.x + 0.5 && ball.position.y >= goalkeeper.position.y - 0.5 && ball.position.y <= goalkeeper.position.y + 0.5) {
+            ball.position.y = ball.position.y - 0.01;
+        }
+
+        // check for ball and goal collision, if collision detected, bounce the ball back
+        if (ball.position.x >= target.position.x - 0.5 && ball.position.x <= target.position.x + 0.5 && ball.position.y >= target.position.y - 0.5 && ball.position.y <= target.position.y + 0.5) {
+            ball.position.y = ball.position.y - 0.01;
+        }
+
+        renderer.render(scene, camera);
+        requestAnimationFrame(render);
+    }
+
+    document.querySelector("body").addEventListener('mousedown', function (event) {
+        if (!left_rightClick && !up_downClick) {
+            left_rightClick = true;
+            console.log("first click")
+        } else if (left_rightClick && !up_downClick) {
+            up_downClick = true;
+            console.log("second click")
+            set_shoot_target();
+            // call reset_gameplay() function after 7 seconds
+            setTimeout(reset_gameplay, 7000);
+        }
+    });
+
+
+
+    render();
+
+    // Function to handle window resizing
+    window.addEventListener('resize', onWindowResize, false)
+    function onWindowResize() {
+        camera.aspect = window.innerWidth / window.innerHeight
+        camera.updateProjectionMatrix()
+        renderer.setSize(window.innerWidth, window.innerHeight)
+        render()
+    }
+</script>
+
+</html>

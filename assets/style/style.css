@@ -1,0 +1,372 @@
+/* Import fonts from assets/fonts/qatar-2022-font*/
+@font-face {
+    font-family: 'Qatar 2022';
+    src: url('../fonts/qatar-2022-font/Qatar2022-Bold.woff') format('woff');
+    font-weight: bold;
+    font-style: normal;
+}
+
+body {
+    margin: 0;
+    overflow: hidden;
+}
+
+canvas {
+    display: block;
+}
+
+
+/* Scoreboard style */
+#scoreboard {
+    position: fixed;
+    width: 400px;
+    display: inline-block;
+    top: 1rem;
+    right: 0.5rem;
+    font-family: 'Qatar 2022';
+    font-size: 2rem;
+}
+
+#scoreboard-left-country,
+#score,
+#scoreboard-right-country {
+    float: right;
+    display: inline-block;
+    width: 32%;
+    text-align: center;
+    padding-top: 5px;
+}
+
+#score {
+    background: white;
+}
+
+#scoreboard-left-country {
+    background: #FEC310;
+    color: white;
+}
+
+#scoreboard-right-country {
+    background: #56042C;
+    color: white;
+}
+
+/* End of scoreboard style */
+
+
+#goal-or-miss,
+#opponent {
+    position: absolute;
+    font-family: "Qatar 2022";
+    font-size: 4rem;
+    background: #56042C;
+    color: #FEC310;
+    width: 100%;
+    height: 60%;
+    text-align: center;
+
+    /* center it vertically */
+    top: 50%;
+    transform: translateY(-50%);
+    opacity: 0;
+}
+
+/* Create blink animation */
+@keyframes blink {
+    0% {
+        opacity: 0;
+    }
+
+    50% {
+        opacity: 1;
+    }
+
+    100% {
+        opacity: 0;
+    }
+}
+
+
+#goal-or-miss h1,
+#opponent h1,
+p {
+    margin: 0;
+    /* center it vertically */
+    top: 50%;
+    transform: translateY(-50%);
+    position: relative;
+
+}
+
+#opponent {
+    opacity: 0;
+}
+
+#opponent p {
+    top: 35%;
+    opacity: 0;
+}
+
+#goal-or-miss h1 {
+    animation: blink 0.5s steps(1) infinite;
+}
+
+#game-result {
+    position: absolute;
+    font-family: "Qatar 2022";
+    font-size: 4rem;
+    background: #56042C;
+    color: #FEC310;
+    width: 100%;
+    height: 100%;
+    text-align: center;
+    opacity: 0;
+}
+
+#game-result table {
+    margin: 0;
+    padding: 0;
+    font-size: 1.5rem;
+    text-align: left;
+    color: white;
+
+    /* center it */
+    position: absolute;
+    left: 50%;
+    transform: translate(-50%);
+
+}
+
+
+#game-result h5 {
+    margin: 2rem;
+}
+
+#next-stage {
+    background: #56042C;
+    color: #FEC310;
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    text-align: center;
+    font-family: "Qatar 2022";
+    display: none;
+}
+
+#next-stage h1 {
+    margin: 0;
+    /* center it vertically */
+    top: 50%;
+    transform: translateY(-50%);
+    position: relative;
+    font-size: 5rem;
+}
+
+#next-stage h1 a {
+    text-decoration: none;
+    color: white;
+}
+
+#next-stage h1 a:hover {
+    color: #FEC310;
+}
+
+
+
+/* HomePage design */
+#menu {
+    text-align: center;
+    position: absolute;
+    font-family: 'Qatar 2022';
+    list-style-type: none;
+    font-size: 3rem;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    /* display: none; */
+}
+
+#menu a {
+    text-decoration: none;
+    color: white;
+}
+
+#menu a:hover {
+    color: #FEC310;
+}
+
+.logo {
+    position: absolute;
+    top: 20px;
+    left: 50%;
+    transform: translate(-50%, 0);
+    width: 15%;
+    height: 15%;
+}
+
+#groups {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    grid-template-rows: repeat(2, 1fr);
+    grid-gap: 1rem;
+    width: 60%;
+    height: 60%;
+    position: absolute;
+    /* center groups */
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    display: none;
+    transition: all .5s ease;
+}
+
+.group {
+    background: #F5EED5;
+    border-radius: 1rem;
+}
+
+.group ul {
+    padding-left: 1rem;
+}
+
+.group h2 {
+    color: #56042C;
+    font-family: "Qatar 2022";
+    text-align: center;
+}
+
+.group li {
+    list-style: none;
+    font-family: "Qatar 2022";
+    font-size: 1.5rem;
+    color: #56042C;
+    padding: 0;
+}
+
+.group li:hover {
+    color: #FEC310;
+    cursor: pointer;
+}
+
+.group b {
+    margin-top: -100px;
+}
+
+.group img {
+    width: 30px;
+    height: 30px;
+    display: inline;
+}
+
+#fixtures {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    display: block;
+    background: #56042C;
+    color: #FEC310;
+    text-align: center;
+    font-family: "Qatar 2022";
+
+    /* centralize content*/
+    display: none;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+#fixtures h1 {
+    color: white;
+    font-size: 4rem;
+}
+
+#fixtures h2 {
+    font-size: 2rem;
+}
+
+#fixtures h1 b {
+    color: #FEC310;
+}
+
+#fixtures ul {
+    list-style: none;
+    padding: 0;
+}
+
+#fixtures ul li {
+    font-size: 2rem;
+    color: white;
+}
+
+#fixtures a {
+    text-decoration: none;
+    color: white;
+}
+
+#fixtures a:hover {
+    color: #FEC310;
+}
+
+#tournament-fixture {
+    background: #56042C;
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    text-align: center;
+}
+
+#tournament-fixture h1 {
+    color: white;
+    font-size: 4rem;
+    font-family: "Qatar 2022";
+}
+
+#one-fourth,
+#one-eighth,
+#semifinal,
+#final {
+    margin-bottom: 2rem;
+    width: 80%;
+    height: auto;
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    /* gap */
+    grid-gap: 1rem;
+    color: #FEC310;
+
+    /* center it */
+    position: relative;
+    left: 50%;
+    transform: translate(-50%);
+}
+
+.disabled {
+    opacity: 0.4;
+}
+
+.game {
+    margin: 0;
+    padding: 0;
+    background: white;
+    border: 1px solid black;
+    font-family: "Qatar 2022";
+}
+
+.game * {
+    margin: 5px;
+}
+
+#one-fourth {
+    width: 80%;
+    text-align: center;
+    /* position: relative; */
+    grid-template-columns: repeat(4, 1fr);
+}
+
+#semifinal {
+    grid-template-columns: repeat(2, 1fr);
+}
+
+#final {
+    grid-template-columns: repeat(1, 1fr);
+}
